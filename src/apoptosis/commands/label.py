@@ -16,7 +16,7 @@ def label(
     data_dir: Path = typer.Option(
         DEFAULT_DATA_DIR,
         "--data-dir",
-        help="Experiment root containing roi/, Pos*/ folders.",
+        help="LiSCA Workspace containing roi/Pos*/ ROI stacks.",
         exists=True,
         file_okay=False,
         dir_okay=True,
@@ -25,7 +25,7 @@ def label(
     labels_path: Path | None = typer.Option(
         None,
         "--labels-path",
-        help="Where to store labels JSON (default: <project>/labels.json).",
+        help="Where to store labels JSON (default: <repo>/labels.json).",
         resolve_path=True,
     ),
     host: str = typer.Option("127.0.0.1", help="Bind host."),

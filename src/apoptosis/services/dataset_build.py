@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from apoptosis.core.labels import LabelStore
-from apoptosis.core.roi import RoiRef, timepoint_count
+from apoptosis.core.roi import RoiRef, roi_frame_count
 from apoptosis.core.session import DEFAULT_DATA_DIR, DEFAULT_LABELS_PATH
 from apoptosis.core.viability import frame_label
 
@@ -60,15 +60,15 @@ def build_dataset_manifest(
     samples: list[FrameSample] = []
     for label in labels:
         roi = RoiRef(position=label.position, roi_id=label.roi_id)
-        timepoints = timepoint_count(data_dir, roi)
+        frame_count = roi_frame_count(data_dir, roi)
         split = "val" if roi.key in val_cells else "train"
-        for time_index in range(timepoints):
+        for frame in range(frame_count):
             samples.append(
                 FrameSample(
                     position=label.position,
                     roi_id=label.roi_id,
-                    time_index=time_index,
-                    label=frame_label(label.death_frame, time_index, timepoints),
+                    time_index=frame,
+                    label=frame_label(label.death_frame, frame, frame_count),
                     split=split,
                 )
             )

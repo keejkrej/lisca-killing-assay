@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from apoptosis.core.roi import CHANNEL_BRIGHTFIELD, frame_index
+from apoptosis.core.roi import CHANNEL_BRIGHTFIELD, page_index
 
 IMAGE_SIZE = 128
 
@@ -31,6 +31,6 @@ def frame_to_tensor(frame: np.ndarray) -> torch.Tensor:
     return tensor
 
 
-def stack_brightfield_tensor(stack: np.ndarray, time_index: int) -> torch.Tensor:
-    frame = stack[frame_index(time_index, CHANNEL_BRIGHTFIELD)].copy()
-    return frame_to_tensor(frame)
+def stack_brightfield_tensor(stack: np.ndarray, frame: int) -> torch.Tensor:
+    image = stack[page_index(frame, CHANNEL_BRIGHTFIELD)].copy()
+    return frame_to_tensor(image)

@@ -11,7 +11,7 @@ from PIL import Image
 
 CHANNEL_BRIGHTFIELD = 0
 CHANNEL_TOTO = 1
-FRAMES_PER_TIMEPOINT = 2
+PAGES_PER_FRAME = 2
 
 
 @dataclass(frozen=True)
@@ -55,29 +55,29 @@ def roi_path(data_dir: Path, roi: RoiRef) -> Path:
     return data_dir / "roi" / roi.position / roi.filename
 
 
-def timepoint_count(data_dir: Path, roi: RoiRef) -> int:
+def roi_frame_count(data_dir: Path, roi: RoiRef) -> int:
     with tifffile.TiffFile(roi_path(data_dir, roi)) as tif:
-        frame_count = len(tif.pages)
-    if frame_count % FRAMES_PER_TIMEPOINT != 0:
-        msg = f"Unexpected frame count {frame_count} for {roi.key}"
+        page_count = len(tif.pages)
+    if page_count % PAGES_PER_FRAME != 0:
+        msg = f"Unexpected page count {page_count} for {roi.key}"
         raise ValueError(msg)
-    return frame_count // FRAMES_PER_TIMEPOINT
+    return page_count // PAGES_PER_FRAME
 
 
-def frame_index(time_index: int, channel: int) -> int:
-    return time_index * FRAMES_PER_TIMEPOINT + channel
+def page_index(frame: int, channel: int) -> int:
+    return frame * PAGES_PER_FRAME + channel
 
 
 def load_frame(
     data_dir: Path,
     roi: RoiRef,
-    time_index: int,
+    frame: int,
     channel: int = CHANNEL_BRIGHTFIELD,
 ) -> np.ndarray:
-    index = frame_index(time_index, channel)
+    index = page_index(frame, channel)
     with tifffile.TiffFile(roi_path(data_dir, roi)) as tif:
         if index >= len(tif.pages):
-            msg = f"Frame {index} out of range for {roi.key} ({len(tif.pages)} frames)"
+            msg = f"Page {index} out of range for {roi.key} ({len(tif.pages)} pages)"
             raise IndexError(msg)
         return tif.pages[index].asarray()
 
@@ -85,24 +85,24 @@ def load_frame(
 def frame_to_png(
     data_dir: Path,
     roi: RoiRef,
-    time_index: int,
+    frame: int,
     channel: int = CHANNEL_BRIGHTFIELD,
 ) -> bytes:
-    frame = load_frame(data_dir, roi, time_index, channel)
-    low, high = np.percentile(frame, (1, 99))
+    image = load_frame(data_dir, roi, frame, channel)
+    low, high = np.percentile(image, (1, 99))
     if high <= low:
         high = low + 1
-    scaled = np.clip((frame.astype(np.float32) - low) / (high - low), 0, 1)
-    image = Image.fromarray((scaled * 255).astype(np.uint8), mode="L")
+    scaled = np.clip((image.astype(np.float32) - low) / (high - low), 0, 1)
+    png = Image.fromarray((scaled * 255).astype(np.uint8), mode="L")
     buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
+    png.save(buffer, format="PNG")
     return buffer.getvalue()
 
 
 def healthy_label_value(data_dir: Path, roi: RoiRef) -> int:
     """Stored death_frame value meaning the cell stayed healthy."""
-    return timepoint_count(data_dir, roi)
+    return roi_frame_count(data_dir, roi)
 
 
-def is_healthy_label(death_frame: int, timepoints: int) -> bool:
-    return death_frame >= timepoints
+def is_healthy_label(death_frame: int, frame_count: int) -> bool:
+    return death_frame >= frame_count

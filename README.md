@@ -1,6 +1,6 @@
 # apoptosis
 
-CLI for classifying cell viability from per-cell microscopy ROI time-lapses. Manual labels drive a ResNet classifier trained with PyTorch Lightning; inference compares morphology-based death timing with Toto-3 fluorescence.
+CLI for classifying cell viability from LiSCA ROI time-lapses (one ROI per micropattern Pattern). Manual labels drive a ResNet classifier trained with PyTorch Lightning; inference compares morphology-based death timing with Toto-3 fluorescence.
 
 ## Install
 
@@ -17,7 +17,7 @@ uv run apoptosis <command> --help
 
 ## Input layout
 
-Commands expect an experiment root with per-position ROI stacks. Each ROI TIFF interleaves brightfield (channel 0) and Toto-3 (channel 1) frames:
+Commands expect a LiSCA Workspace (`--data-dir`) with per-Position ROI stacks from ROI crop. Each ROI TIFF interleaves brightfield (channel 0) and Toto-3 (channel 1) pages, two pages per Frame:
 
 ```text
 data_dir/
@@ -31,7 +31,7 @@ data_dir/
       ...
 ```
 
-Manual labels are stored as JSON (default: `<project>/labels.json`):
+Manual labels are stored as JSON (default: `<repo>/labels.json`):
 
 ```json
 [
@@ -44,7 +44,7 @@ Manual labels are stored as JSON (default: `<project>/labels.json`):
 ]
 ```
 
-A `death_frame` equal to the ROI timepoint count means the cell stayed healthy through the acquisition.
+`death_frame` is a Frame index. A `death_frame` equal to the ROI Frame count means the cell stayed healthy through the acquisition.
 
 ## Workflow
 

@@ -22,7 +22,7 @@ import numpy as np
 from apoptosis.core.toto import BASELINE_FRAMES
 from apoptosis.services.inference import POSITION_META, CellInference, load_inference
 
-TIME_INTERVAL_MIN = 10  # minutes per timepoint
+TIME_INTERVAL_MIN = 10  # minutes per frame (Interval)
 # Distinct colors for panel A signals (no longer rely on linestyle alone)
 COLOR_PROB_DEAD = "#1f77b4"   # blue – viability P(dead)
 COLOR_TOTO = "#ff7f0e"        # orange – Toto-3 fluorescence
@@ -49,13 +49,13 @@ def _style_axes(ax: plt.Axes, *, xlabel: str | None = None, ylabel: str | None =
 def _toto_transition_interval(
     toto_raw: np.ndarray,
     death_toto: int,
-    timepoints: int,
+    frame_count: int,
     *,
     pre_frames: int = 15,
     post_window: int = 12,
 ) -> tuple[int, int] | None:
     """Frame range where Toto-3 rises from pre-death baseline to post-transition level."""
-    if death_toto >= timepoints:
+    if death_toto >= frame_count:
         return None
     trace = np.asarray(toto_raw, dtype=np.float64)
     pre_start = max(BASELINE_FRAMES, death_toto - pre_frames)
