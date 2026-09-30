@@ -10,7 +10,7 @@ import tifffile
 import torch
 from torch.utils.data import Dataset
 
-from apoptosis.core.roi import CHANNEL_BRIGHTFIELD, RoiRef, frame_index, roi_path
+from apoptosis.core.roi import CHANNEL_BRIGHTFIELD, RoiRef, page_index, roi_path
 from apoptosis.ml.preprocess import IMAGE_SIZE, frame_to_tensor, normalize_frame
 
 __all__ = [
@@ -57,7 +57,7 @@ class ViabilityFrameDataset(Dataset[tuple[torch.Tensor, torch.Tensor]]):
         sample = self.samples[index]
         roi = RoiRef(position=sample.position, roi_id=sample.roi_id)
         stack = self._load_stack(roi)
-        frame = stack[frame_index(sample.time_index, CHANNEL_BRIGHTFIELD)].copy()
+        frame = stack[page_index(sample.time_index, CHANNEL_BRIGHTFIELD)].copy()
         tensor = frame_to_tensor(frame)
         label = torch.tensor(sample.label, dtype=torch.long)
         return tensor, label

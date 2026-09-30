@@ -6,7 +6,14 @@ from pathlib import Path
 import numpy as np
 import tifffile
 
-from apoptosis.core.roi import CHANNEL_BRIGHTFIELD, CHANNEL_TOTO, RoiRef, frame_index, roi_path
+from apoptosis.core.roi import (
+    CHANNEL_BRIGHTFIELD,
+    CHANNEL_TOTO,
+    PAGES_PER_FRAME,
+    RoiRef,
+    page_index,
+    roi_path,
+)
 
 
 def _box_mean_2d(image: np.ndarray, *, radius: int) -> np.ndarray:
@@ -147,17 +154,18 @@ TOTO_MIN_RAW_STEP = 500_000.0
 def toto_trace(data_dir: Path, roi: RoiRef) -> np.ndarray:
     """Compute bg-corrected Toto-3 signal using cell mask from brightfield.
 
-    For each timepoint:
+    For each frame:
       - Segment cell mask from BF channel (variation + gaussian + otsu)
       - On Toto channel: sum(foreground) - median(background) * area
-    This follows the mask + signal channel pattern for more precise cell-specific measurement.
+    This follows the segmentation + signal channel pattern for more precise
+    cell-specific measurement.
     """
     stack = tifffile.imread(roi_path(data_dir, roi))
-    n_times = len(stack) // 2
+    n_frames = len(stack) // PAGES_PER_FRAME
     signals = []
-    for t in range(n_times):
-        bf = stack[frame_index(t, CHANNEL_BRIGHTFIELD)].astype(np.float64)
-        toto = stack[frame_index(t, CHANNEL_TOTO)].astype(np.float64)
+    for t in range(n_frames):
+        bf = stack[page_index(t, CHANNEL_BRIGHTFIELD)].astype(np.float64)
+        toto = stack[page_index(t, CHANNEL_TOTO)].astype(np.float64)
 
         mask = segment_frame(bf, variation_radius=2, gaussian_sigma=1.0)
         area = int(mask.sum())
@@ -282,7 +290,7 @@ def _best_mean_step_up(values: np.ndarray, min_seg: int = 3) -> tuple[int | None
 
 def death_time_from_toto(
     contrast: np.ndarray,
-    timepoints: int,
+    frame_count: int,
     raw_trace: np.ndarray | None = None,
     min_raw_step: float = TOTO_MIN_RAW_STEP,
     fold_threshold: float = 2.0,
@@ -300,12 +308,12 @@ def death_time_from_toto(
     """
     contrast = np.asarray(contrast, dtype=np.float32)
     if len(contrast) == 0:
-        return timepoints
+        return frame_count
 
     dcontrast = _detrend(contrast).astype(np.float32)
 
     if not _has_intensity_jump(dcontrast, rel_thresh=1.1, abs_thresh=150.0):
-        return timepoints
+        return frame_count
 
     raw = np.asarray(raw_trace, dtype=np.float32) if raw_trace is not None else None
     pre_w = sustained
@@ -324,16 +332,16 @@ def death_time_from_toto(
             raw_step = float(np.mean(raw[t:post]) - np.mean(raw[pre:t]))
             if raw_step < min_raw_step:
                 continue
-        if t >= timepoints - 3:
-            return timepoints
+        if t >= frame_count - 3:
+            return frame_count
         return int(t)
 
-    return timepoints
+    return frame_count
 
 
 def death_time_from_probability(
     death_probability: np.ndarray,
-    timepoints: int,
+    frame_count: int,
     threshold: float = 0.5,
     sustained: int = SUSTAINED_FRAMES,
 ) -> int:
@@ -344,16 +352,16 @@ def death_time_from_probability(
     """
     probs = np.asarray(death_probability, dtype=np.float32)
     if len(probs) == 0:
-        return timepoints
+        return frame_count
     pmin = float(np.min(probs))
     pmax = float(np.max(probs))
     if (pmax - pmin) < 0.25 or pmax < 0.35:
-        return timepoints
+        return frame_count
     t, delta = _best_mean_step_up(probs, min_seg=sustained)
     if t is None or delta < 0.25:
-        return timepoints
-    if t >= timepoints - 2:
-        return timepoints
+        return frame_count
+    if t >= frame_count - 2:
+        return frame_count
     return int(t)
 
 

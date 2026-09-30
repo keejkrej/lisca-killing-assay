@@ -8,7 +8,7 @@ import numpy as np
 
 from apoptosis.services.inference import POSITION_META, CellInference
 
-TIME_INTERVAL_MIN = 10  # minutes per timepoint
+TIME_INTERVAL_MIN = 10  # minutes per frame (Interval)
 SIGNAL_LEGEND_COLOR = "0.35"
 PANEL_LABEL_FONTSIZE = 18
 AXIS_LABEL_FONTSIZE = 13

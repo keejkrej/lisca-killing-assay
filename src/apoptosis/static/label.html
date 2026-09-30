@@ -228,7 +228,7 @@
       const state = {
         rois: [],
         index: 0,
-        timeIndex: 0,
+        frame: 0,
       };
 
       const els = {
@@ -259,15 +259,15 @@
 
       function frameUrl(channel) {
         const roi = currentRoi();
-        return `/api/rois/${roi.position}/${roi.roi_id}/frame/${state.timeIndex}?channel=${channel}`;
+        return `/api/rois/${roi.position}/${roi.roi_id}/frame/${state.frame}?channel=${channel}`;
       }
 
       function lastFrameIndex() {
-        return currentRoi().timepoints - 1;
+        return currentRoi().frame_count - 1;
       }
 
       function healthySaveValue() {
-        return currentRoi().timepoints;
+        return currentRoi().frame_count;
       }
 
       async function refreshImages() {
@@ -279,8 +279,8 @@
       function updateTimelineUi() {
         const lastFrame = lastFrameIndex();
         els.timeline.max = String(lastFrame);
-        els.timeline.value = String(state.timeIndex);
-        els.frameText.textContent = String(state.timeIndex);
+        els.timeline.value = String(state.frame);
+        els.frameText.textContent = String(state.frame);
         els.frameHint.textContent = `of 0–${lastFrame}`;
       }
 
@@ -304,8 +304,8 @@
         const roi = currentRoi();
         els.roiMeta.innerHTML = `
           <span>ROI <strong>${roi.key}</strong></span>
-          <span>Condition <strong>${roi.position}</strong></span>
-          <span>Timepoints <strong>${roi.timepoints}</strong></span>
+          <span>Position <strong>${roi.position}</strong></span>
+          <span>Frames <strong>${roi.frame_count}</strong></span>
           <span>Index <strong>${state.index + 1} / ${state.rois.length}</strong></span>
         `;
       }
@@ -331,16 +331,16 @@
       async function loadRoiDetail() {
         const roi = currentRoi();
         const detail = await fetchJson(`/api/rois/${roi.position}/${roi.roi_id}`);
-        roi.timepoints = detail.timepoints;
+        roi.frame_count = detail.frame_count;
         if (detail.label) {
           roi.labeled = true;
           roi.death_frame = detail.label.death_frame;
           roi.is_healthy = detail.label.is_healthy;
-          state.timeIndex = detail.label.is_healthy
+          state.frame = detail.label.is_healthy
             ? 0
-            : Math.min(detail.label.death_frame, detail.timepoints - 1);
+            : Math.min(detail.label.death_frame, detail.frame_count - 1);
         } else {
-          state.timeIndex = 0;
+          state.frame = 0;
         }
         renderRoiMeta();
         updateTimelineUi();
@@ -369,7 +369,7 @@
         roi.death_frame = saved.death_frame;
         roi.is_healthy = saved.is_healthy;
         if (!saved.is_healthy) {
-          state.timeIndex = saved.death_frame;
+          state.frame = saved.death_frame;
         }
         updateTimelineUi();
         updateStatus();
@@ -393,22 +393,22 @@
       }
 
       document.getElementById("timeline").addEventListener("input", async (event) => {
-        state.timeIndex = Number(event.target.value);
+        state.frame = Number(event.target.value);
         updateTimelineUi();
         await refreshImages();
       });
       document.getElementById("prevFrameBtn").addEventListener("click", async () => {
-        state.timeIndex = Math.max(0, state.timeIndex - 1);
+        state.frame = Math.max(0, state.frame - 1);
         updateTimelineUi();
         await refreshImages();
       });
       document.getElementById("nextFrameBtn").addEventListener("click", async () => {
-        state.timeIndex = Math.min(lastFrameIndex(), state.timeIndex + 1);
+        state.frame = Math.min(lastFrameIndex(), state.frame + 1);
         updateTimelineUi();
         await refreshImages();
       });
       document.getElementById("markDeathBtn").addEventListener("click", async () => {
-        await saveLabel(state.timeIndex);
+        await saveLabel(state.frame);
       });
       document.getElementById("markHealthyBtn").addEventListener("click", async () => {
         await saveLabel(healthySaveValue());
@@ -424,19 +424,19 @@
         if (event.target instanceof HTMLInputElement) return;
         if (event.key === "ArrowLeft") {
           event.preventDefault();
-          state.timeIndex = Math.max(0, state.timeIndex - 1);
+          state.frame = Math.max(0, state.frame - 1);
           updateTimelineUi();
           await refreshImages();
         }
         if (event.key === "ArrowRight") {
           event.preventDefault();
-          state.timeIndex = Math.min(lastFrameIndex(), state.timeIndex + 1);
+          state.frame = Math.min(lastFrameIndex(), state.frame + 1);
           updateTimelineUi();
           await refreshImages();
         }
         if (event.key === "d" || event.key === "D") {
           event.preventDefault();
-          await saveLabel(state.timeIndex);
+          await saveLabel(state.frame);
         }
         if (event.key === "h" || event.key === "H") {
           event.preventDefault();

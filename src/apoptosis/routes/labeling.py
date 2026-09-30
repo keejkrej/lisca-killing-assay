@@ -48,7 +48,7 @@ def list_rois() -> list[dict[str, object]]:
             "position": roi.position,
             "roi_id": roi.roi_id,
             "key": roi.key,
-            "timepoints": roi.timepoints,
+            "frame_count": roi.frame_count,
             "labeled": roi.labeled,
             "death_frame": roi.death_frame,
             "is_healthy": roi.is_healthy,
@@ -67,18 +67,18 @@ def roi_detail(position: str, roi_id: int) -> dict[str, object]:
     return session.roi_detail(roi)
 
 
-@api.get("/api/rois/{position}/{roi_id}/frame/{time_index}")
+@api.get("/api/rois/{position}/{roi_id}/frame/{frame}")
 def roi_frame(
     position: str,
     roi_id: int,
-    time_index: int,
+    frame: int,
     channel: str = "brightfield",
 ) -> Response:
     session = _session_or_503()
     try:
         roi = session.get_roi(position, roi_id)
         channel_id = CHANNEL_TOTO if channel == "toto" else CHANNEL_BRIGHTFIELD
-        png = session.render_frame(roi, time_index, channel_id)
+        png = session.render_frame(roi, frame, channel_id)
     except (FileNotFoundError, IndexError, ValueError) as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return Response(content=png, media_type="image/png")

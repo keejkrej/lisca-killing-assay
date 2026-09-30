@@ -9,7 +9,7 @@ import tifffile
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from apoptosis.core.roi import discover_rois, roi_path, timepoint_count
+from apoptosis.core.roi import discover_rois, roi_frame_count, roi_path
 from apoptosis.core.toto import (
     death_time_from_probability,
     death_time_from_toto,
@@ -31,7 +31,7 @@ POSITION_META = {
 class CellInference:
     position: str
     roi_id: int
-    timepoints: int
+    timepoints: int  # Frame count; key kept so existing inference.json loads
     death_time_toto: int
     death_time_viability: int
     toto_raw: list[float]
@@ -58,12 +58,12 @@ def _default_checkpoint(project_root: Path) -> Path:
 def _predict_death_probability(
     model: ViabilityModule,
     stack: np.ndarray,
-    timepoints: int,
+    frame_count: int,
     device: torch.device,
     batch_size: int,
 ) -> np.ndarray:
     tensors = [
-        stack_brightfield_tensor(stack, time_index) for time_index in range(timepoints)
+        stack_brightfield_tensor(stack, frame) for frame in range(frame_count)
     ]
     loader = DataLoader(
         TensorDataset(torch.stack(tensors)),
@@ -102,7 +102,7 @@ def infer_all_cells(
     results: list[CellInference] = []
     for roi in all_rois:
         stack = tifffile.imread(roi_path(data_dir, roi))
-        timepoints = timepoint_count(data_dir, roi)
+        frame_count = roi_frame_count(data_dir, roi)
         trace = toto_trace(data_dir, roi)
         # Use position-median residual for jump detection: suppresses common artifacts
         # (e.g. global illumination/focus shifts) while highlighting cell-specific
@@ -113,7 +113,7 @@ def infer_all_cells(
         death_prob = _predict_death_probability(
             model=model,
             stack=stack,
-            timepoints=timepoints,
+            frame_count=frame_count,
             device=device,
             batch_size=batch_size,
         )
@@ -121,10 +121,12 @@ def infer_all_cells(
             CellInference(
                 position=roi.position,
                 roi_id=roi.roi_id,
-                timepoints=timepoints,
-                death_time_toto=death_time_from_toto(contrast, timepoints, raw_trace=trace),
+                timepoints=frame_count,
+                death_time_toto=death_time_from_toto(
+                    contrast, frame_count, raw_trace=trace
+                ),
                 death_time_viability=death_time_from_probability(
-                    death_prob, timepoints
+                    death_prob, frame_count
                 ),
                 toto_raw=trace.tolist(),
                 toto_alive=toto_alive_signal(trace).tolist(),
