@@ -104,6 +104,17 @@ uv run apoptosis predict --data-dir /path/to/data
 | `hello` | Greet someone (smoke test) |
 | `version` | Show the installed version |
 
+## Frozen-encoder viability
+
+Label-free viability can also be scored with a frozen EmbeddingGemma encoder,
+cosine nearest neighbors, and a small linear SVM. No encoder weights are trained.
+The offline comparison is `scripts/compare_roi_embeddings.py`
+([results](docs/roi-embedding-comparison.md)). The GPU service is
+`python -m apoptosis.embedding.server` ([install](docs/inference-server.md)).
+Studio's Analysis page dials that service; the screen itself stays in the LiSCA
+repo. Optional installs: `requirements-embedding.txt` and
+`requirements-inference.txt`.
+
 ## Paper figures
 
 One-off figure scripts that are not CLI commands live in `scripts/`. For example, `scripts/plot_fig6.py` reads `runs/viability/inference.json` and writes paper figures to an external repo path configured in the script.
