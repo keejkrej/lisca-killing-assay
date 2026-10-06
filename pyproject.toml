@@ -26,7 +26,14 @@ dependencies = [
 apoptosis = "apoptosis.main:run"
 
 [dependency-groups]
-dev = ["ruff>=0.9", "ty>=0.0.1"]
+dev = [
+    "httpx>=0.28",
+    "pytest>=8",
+    "python-multipart>=0.0.20",
+    "ruff>=0.9",
+    "scikit-learn>=1.6",
+    "ty>=0.0.1",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/apoptosis"]
@@ -46,6 +53,9 @@ ban-relative-imports = "parents"
 
 [tool.ruff.lint.per-file-ignores]
 "src/apoptosis/commands/*.py" = ["B008"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.ty.environment]
 python-version = "3.12"
