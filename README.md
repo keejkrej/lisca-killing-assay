@@ -109,11 +109,12 @@ uv run apoptosis predict --data-dir /path/to/data
 Label-free viability can also be scored with a frozen EmbeddingGemma encoder,
 cosine nearest neighbors, and a small linear SVM. No encoder weights are trained.
 The offline comparison is `scripts/compare_roi_embeddings.py`
-([results](docs/roi-embedding-comparison.md)). The GPU service is
-`python -m apoptosis.embedding.server` ([install](docs/inference-server.md)).
-Studio's Analysis page dials that service; the screen itself stays in the LiSCA
-repo. Optional installs: `requirements-embedding.txt` and
-`requirements-inference.txt`.
+([results](docs/roi-embedding-comparison.md)). EmbeddingGemma and the
+viable/dead classifier register with the LiSCA inference host
+(`python -m lisca.inference.server` in
+[keejkrej/lisca](https://github.com/keejkrej/lisca)). Studio dials that host.
+Optional encoder install: `requirements-inference.txt`. The offline comparison
+also uses `requirements-embedding.txt`.
 
 ## Paper figures
 

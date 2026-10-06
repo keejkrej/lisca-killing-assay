@@ -29,8 +29,8 @@ identified by the user for this cell line. Sequence contact sheets expose drift
 and other changes that can masquerade as death. Disappearance and ring loss are
 not automatically mapped to a biological death label.
 
-The GPU service that serves the same encoder is ADR-0002. This comparison does
-not replace `apoptosis predict`.
+The LiSCA host loads this encoder through ADR-0003. This comparison does not
+replace `apoptosis predict`.
 
 ## Looks like a bug when
 

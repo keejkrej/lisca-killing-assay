@@ -11,9 +11,9 @@ and Fig. 6 regeneration. Train-at-scale: `lsr-ex-dgx1`.
 
 Python CLI `apoptosis`: label death frames → train ResNet viability → compare
 morphology death time with TOTO-3. Supplies LISCA review Fig. 6 D–E via
-`scripts/plot_fig6.py`. The frozen-encoder viability service and the offline
-embedding comparison also live here (`docs/inference-server.md`,
-`docs/adr/0001-frozen-reference-classification.md`). Dual-marker LNP event times
+`scripts/plot_fig6.py`. EmbeddingGemma and the viable/dead SVM register with the LiSCA inference host.
+The host process stays in `keejkrej/lisca` (`docs/adr/0003-assay-registers-its-model.md`).
+The offline embedding comparison stays here. Dual-marker LNP event times
 (Fig. 6 A–C) are not this repo. Studio UI stays in `keejkrej/lisca`.
 
 ## Commands
