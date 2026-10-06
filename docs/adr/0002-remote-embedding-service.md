@@ -1,6 +1,7 @@
 # ADR-0002: Serve frozen viability inference from this package
 
-- **Status:** accepted
+- **Status:** superseded
+- **Superseded by:** ADR-0003
 - **Date:** 2026-10-06
 
 ## Decision

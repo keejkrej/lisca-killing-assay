@@ -1,1 +1,1 @@
-"""Frozen-encoder label-free viability."""
+"""Offline frozen-embedding comparison. The service model is apoptosis.inference."""
