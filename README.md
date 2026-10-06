@@ -1,6 +1,13 @@
 # apoptosis
 
-CLI for classifying cell viability from LiSCA ROI time-lapses (one ROI per micropattern Pattern). Manual labels drive a ResNet classifier trained with PyTorch Lightning; inference compares morphology-based death timing with Toto-3 fluorescence.
+CLI for two killing kinds on LiSCA ROI time-lapses (one ROI per micropattern Pattern).
+
+| Kind | Id | Signal |
+| --- | --- | --- |
+| Death reporter | `death-reporter` | A fluorescent reporter of a death event. The reporter is the signal, as in a transfection Trace. |
+| Label-free | `label-free` | Brightfield or phase contrast. Manual labels train a ResNet; there is no death reporter. |
+
+The commands below are the label-free path. They compare morphology-based death timing with TOTO-3, which is one death reporter. Ids live in `apoptosis.core.assay`.
 
 ## Install
 
