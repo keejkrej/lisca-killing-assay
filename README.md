@@ -9,6 +9,15 @@ CLI for two killing kinds on LiSCA ROI time-lapses (one ROI per micropattern Pat
 
 The commands below are the label-free path. They compare morphology-based death timing with TOTO-3, which is one death reporter. Ids live in `apoptosis.core.assay`.
 
+Death-reporter fluorescence and fluorescent engagement are the Studio measurements. Rust crate `lisca-killing` is what LiSCA imports. The same definitions are available as:
+
+```bash
+uv run apoptosis fluorescence /path/to/workspace
+uv run apoptosis engagement /path/to/workspace
+```
+
+`fluorescence` writes `analysis/Pos{n}/ch{m}.csv` (`roi,t,area,background,sum,corrected`). `engagement` writes `analysis/Pos{n}/engagement.csv`. Excel packs and the per-sample figures are written by the Rust crate when Studio runs the analysis.
+
 ## Install
 
 ```bash
