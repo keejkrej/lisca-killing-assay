@@ -5,7 +5,7 @@ cosine nearest neighbors with a class-balanced linear SVM on the same frozen ima
 embeddings. It does not fine-tune the encoder or change Studio's analysis pipeline.
 Run embedding on the GPU host; the classifier comparison only needs a CPU.
 
-## Figure 6 apoptosis: existing labels, 2026-10-06
+## Figure 6 killing: existing labels, 2026-10-06
 
 This is the primary comparison. The existing
 `lisca-killing-assay/datasets/viability/manifest.json` points to
@@ -16,7 +16,7 @@ the existing annotations, not ResNet predictions or Codex visual labels.
 
 Every tenth stored frame was embedded: 1,250 brightfield images, including 1,000
 references (717 viable, 283 dead) and 250 validation images (201 viable, 49 dead).
-The data includes Positions 0, 28, and 70. Preprocessing uses the original apoptosis
+The data includes Positions 0, 28, and 70. Preprocessing uses the original killing
 per-frame 1st/99th percentile normalization, with uint8 quantization for the image
 encoder. The reporter channel is not an input. EmbeddingGemma 2 stays frozen at
 revision `914f7f89142e33e77833254d9c9b90c3cef7303b`, producing 768-dimensional vectors
@@ -278,7 +278,7 @@ death times. The artifact manifests and comparison report mark the evaluation
 as invalid for biological conclusions. No drift correction was attempted because
 the source acquisition is absent from this portable folder.
 
-The user then requested the already-labeled Figure 6 apoptosis data instead; that
+The user then requested the already-labeled Figure 6 killing data instead; that
 comparison is reported above. The Nikon dataset remains a future evaluation. Check
 cell retention and controls before interpreting its predictions biologically.
 

@@ -9,9 +9,9 @@ from typing import Any
 import numpy as np
 from PIL import Image, ImageDraw, ImageOps
 
-from apoptosis.embedding.experiment import compare_sample, write_json
-from apoptosis.embedding.reference_classification import evaluate_manifest
-from apoptosis.embedding.temporal_classification import temporal_embeddings
+from killing.embedding.experiment import compare_sample, write_json
+from killing.embedding.reference_classification import evaluate_manifest
+from killing.embedding.temporal_classification import temporal_embeddings
 
 
 def main() -> None:

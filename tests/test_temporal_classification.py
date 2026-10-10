@@ -3,7 +3,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from apoptosis.embedding.temporal_classification import temporal_embeddings
+from killing.embedding.temporal_classification import temporal_embeddings
 
 
 def _rows() -> list[dict[str, Any]]:

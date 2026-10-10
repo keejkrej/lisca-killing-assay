@@ -19,8 +19,8 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Ellipse
 import numpy as np
 
-from apoptosis.core.toto import BASELINE_FRAMES
-from apoptosis.services.inference import POSITION_META, CellInference, load_inference
+from killing.core.toto import BASELINE_FRAMES
+from killing.services.inference import POSITION_META, CellInference, load_inference
 
 TIME_INTERVAL_MIN = 10  # minutes per frame (Interval)
 # Distinct colors for panel A signals (no longer rely on linestyle alone)
