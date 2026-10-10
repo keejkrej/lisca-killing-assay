@@ -546,42 +546,16 @@ fn otsu_threshold(pixels: &[f64]) -> Option<f64> {
     if !min.is_finite() || max <= min {
         return None;
     }
-    const BINS: usize = 256;
-    let mut histogram = [0u32; BINS];
-    let scale = (BINS - 1) as f64 / (max - min);
-    for value in pixels {
-        let bin = ((*value - min) * scale).round() as usize;
-        histogram[bin.min(BINS - 1)] += 1;
-    }
-    let total = pixels.len() as f64;
-    let mut sum_all = 0.0;
-    for (bin, count) in histogram.iter().enumerate() {
-        sum_all += bin as f64 * f64::from(*count);
-    }
-    let mut sum_background = 0.0;
-    let mut weight_background = 0.0;
-    let mut best_variance = -1.0;
-    let mut best_bin = 0usize;
-    for (bin, count) in histogram.iter().enumerate() {
-        weight_background += f64::from(*count);
-        if weight_background == 0.0 {
-            continue;
-        }
-        let weight_foreground = total - weight_background;
-        if weight_foreground == 0.0 {
-            break;
-        }
-        sum_background += bin as f64 * f64::from(*count);
-        let mean_background = sum_background / weight_background;
-        let mean_foreground = (sum_all - sum_background) / weight_foreground;
-        let between =
-            weight_background * weight_foreground * (mean_background - mean_foreground).powi(2);
-        if between > best_variance {
-            best_variance = between;
-            best_bin = bin;
-        }
-    }
-    Some(min + best_bin as f64 / scale)
+    // Same 256-bin quantization as before. The between-class search is
+    // `skimage.filters.threshold_otsu` on that 8-bit image.
+    let scale = 255.0 / (max - min);
+    let gray: Vec<u8> = pixels
+        .iter()
+        .map(|value| ((*value - min) * scale).round().clamp(0.0, 255.0) as u8)
+        .collect();
+    let image = mlab_rs::np::Array2::from_shape_vec((1, gray.len()), gray).ok()?;
+    let level = mlab_rs::skimage::filters::threshold_otsu(&image);
+    Some(min + (level / 255.0) * (max - min))
 }
 
 /// Split a peanut of two touching engagers into two circles.

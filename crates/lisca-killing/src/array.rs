@@ -42,7 +42,7 @@ fn quantile(values: &[f64], q: f64) -> f64 {
     let Some(q) = q.is_finite().then_some(q.clamp(0.0, 1.0)) else {
         return 0.0;
     };
-    let mut finite: Vec<f64> = values
+    let finite: Vec<f64> = values
         .iter()
         .copied()
         .filter(|value| value.is_finite())
@@ -53,12 +53,6 @@ fn quantile(values: &[f64], q: f64) -> f64 {
     if finite.len() == 1 {
         return finite[0];
     }
-    finite.sort_unstable_by(f64::total_cmp);
-    let index = q * (finite.len() - 1) as f64;
-    let lower_index = (index.floor() as usize).min(finite.len() - 1);
-    let upper_index = (index.ceil() as usize).min(finite.len() - 1);
-    let fraction = index - lower_index as f64;
-    let lower = finite[lower_index];
-    let upper = finite[upper_index];
-    lower + fraction * (upper - lower)
+    // `np::percentile` is numpy's linear quantile. `q` here is a fraction.
+    mlab_rs::np::percentile(&mlab_rs::np::array(finite), q * 100.0)
 }
