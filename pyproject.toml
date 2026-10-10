@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "killing"
 version = "0.1.0"
-description = "Killing CLI"
+description = "Killing assay library. The killing script is the local label-free training tool."
 requires-python = ">=3.10"
 dependencies = [
     "fastapi>=0.138.0",
