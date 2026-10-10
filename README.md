@@ -1,6 +1,6 @@
 # killing
 
-CLI for two killing kinds on LiSCA ROI time-lapses (one ROI per micropattern Pattern).
+Library Lisca imports (`lisca-killing`) and the local label-free training tool. It is not the program that runs a Studio assay. The two killing kinds below are training-package kinds on LiSCA ROI time-lapses (one ROI per micropattern Pattern).
 
 | Kind | Id | Signal |
 | --- | --- | --- |
@@ -9,15 +9,11 @@ CLI for two killing kinds on LiSCA ROI time-lapses (one ROI per micropattern Pat
 
 The commands below are the label-free path. They compare morphology-based death timing with TOTO-3, which is one death reporter. Ids live in `killing.core.assay`.
 
-Death-reporter fluorescence and fluorescent engagement are the Studio measurements. Rust crate `lisca-killing` is what LiSCA imports. The same definitions are available as:
+Death-reporter fluorescence and fluorescent engagement are the Studio measurements. Rust crate `lisca-killing` is what Lisca imports. Lisca writes every PNG and the death-reporter `traces.xlsx`. The crate writes fluorescence CSVs (`analysis/Pos{n}/ch{m}.csv`: `roi,t,area,background,sum,corrected`), `engagement.csv`, `engagement_summary.csv`, and the engagement workbooks.
 
-```bash
-uv run killing fluorescence /path/to/workspace
-uv run killing engagement /path/to/workspace
-uv run killing clean /path/to/workspace
-```
+`lisca-analyze killing` and `lisca-analyze killing-engagement` in [keejkrej/lisca](https://github.com/keejkrej/lisca) run those measurements. They arrive with Lisca PR 159 and are not on `lisca` `main` until that PR merges.
 
-`fluorescence` writes `analysis/Pos{n}/ch{m}.csv` (`roi,t,area,background,sum,corrected`). `engagement` writes `analysis/Pos{n}/engagement.csv`. `clean` reads `results/predictions.csv` and writes `predictions_cleaned.csv`, `death_times.csv`, and `kill_curve.csv`. A crop stays alive while `p_dead` is below 0.5; once it is dead, later alive labels are cleared. Excel packs and the per-sample figures are written by the Rust crate when Studio runs the analysis. The ResNet `predict` step loads `model.onnx` in the Rust crate (`onnx` feature).
+A crop stays alive while `p_dead` is below 0.5; once it is dead, later alive labels are cleared. Python `predict` loads a Lightning checkpoint and writes `runs/viability/inference.json`. That is not `lisca_killing::run_predict_to`, which loads `model.onnx` behind the crate's `onnx` feature.
 
 ## Install
 
@@ -110,8 +106,7 @@ uv run killing predict --data-dir /path/to/data
 | `dataset-build` | Build a per-frame viability dataset manifest from manual labels |
 | `train` | Train a ResNet viability classifier with PyTorch Lightning |
 | `eval` | Evaluate a trained model on train and val splits |
-| `predict` | Run viability inference on all cells; plot Toto-3 vs morphology timing |
-| `clean` | Monotonicity-clean classifier labels; write death times and the kill curve |
+| `predict` | Lightning checkpoint inference; write `runs/viability/inference.json`. Not `lisca_killing::run_predict_to` |
 | `hello` | Greet someone (smoke test) |
 | `version` | Show the installed version |
 

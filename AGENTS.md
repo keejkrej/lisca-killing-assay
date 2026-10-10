@@ -9,7 +9,7 @@ and Fig. 6 regeneration. Train-at-scale: `lsr-ex-dgx1`.
 
 ## Purpose
 
-Python CLI `killing` and Rust crate `lisca-killing`.
+Rust crate `lisca-killing`, imported by Lisca. The Python package `killing` is the definition library and the local training CLI.
 
 Label-free path: label death frames → train ResNet viability → compare
 morphology death time with TOTO-3. Supplies LISCA review Fig. 6 D–E via
@@ -19,11 +19,12 @@ The offline embedding comparison stays here. Dual-marker LNP event times
 (Fig. 6 A–C) are not this repo.
 
 Studio death-reporter fluorescence, fluorescent engagement, and the killing
-classifier (predict, clean, kill curve) live in this repo (`lisca-killing`, plus
-`killing fluorescence`, `killing engagement`, and `killing clean`).
-`keejkrej/lisca` imports the crate at build time and keeps scheduling, progress,
-and the figures. `predict` loads `model.onnx` behind the crate's `onnx` feature.
-Studio UI stays in `keejkrej/lisca`.
+classifier (predict, monotonicity clean, kill curve) live here as library code
+(`lisca-killing`, `killing.core`, `killing.services`). `keejkrej/lisca` imports
+the crate at build time. Studio UI, scheduling, figures, and `lisca-analyze`
+stay in `keejkrej/lisca`. `lisca_killing::run_predict_to` loads `model.onnx`
+behind the crate's `onnx` feature. Python `predict` is the Lightning checkpoint
+tool, not that function.
 
 ## Commands
 
