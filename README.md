@@ -11,7 +11,7 @@ The commands below are the label-free path. They compare morphology-based death 
 
 Death-reporter fluorescence and fluorescent engagement are the Studio measurements. Rust crate `lisca-killing` is what Lisca imports. Lisca writes every PNG and the death-reporter `traces.xlsx`. The crate writes fluorescence CSVs (`analysis/Pos{n}/ch{m}.csv`: `roi,t,area,background,sum,corrected`), `engagement.csv`, `engagement_summary.csv`, and the engagement workbooks.
 
-`lisca-analyze killing` and `lisca-analyze killing-engagement` in [keejkrej/lisca](https://github.com/keejkrej/lisca) run those measurements. They arrive with Lisca PR 159 and are not on `lisca` `main` until that PR merges.
+`lisca-analyze killing-death-reporter` and `lisca-analyze killing-engagement` in [keejkrej/lisca](https://github.com/keejkrej/lisca) run those measurements. `killing-death-reporter` requires `assay.json` type `killing`. They arrive with Lisca PR 159 and are not on `lisca` `main` until that PR merges.
 
 A crop stays alive while `p_dead` is below 0.5; once it is dead, later alive labels are cleared. Python `predict` loads a Lightning checkpoint and writes `runs/viability/inference.json`. That is not `lisca_killing::run_predict_to`, which loads `model.onnx` behind the crate's `onnx` feature.
 
