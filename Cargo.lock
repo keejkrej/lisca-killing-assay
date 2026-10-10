@@ -691,7 +691,7 @@ version = "0.1.0"
 dependencies = [
  "csv",
  "image",
- "mlab",
+ "marray",
  "ndarray 0.17.2",
  "ort",
  "rust_xlsxwriter",
@@ -721,6 +721,22 @@ name = "lzma-rust2"
 version = "0.15.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e20f57f9918e5bd7bc58c22cdd70a6afc7375d4dd9683af5f2b34bd3d2bba619"
+
+[[package]]
+name = "marray"
+version = "1.0.0"
+source = "git+https://github.com/keejkrej/marray-rs?rev=af67ac2d833f55e069f286022d0a0de0b9547bfb#af67ac2d833f55e069f286022d0a0de0b9547bfb"
+dependencies = [
+ "image",
+ "imageproc",
+ "nalgebra 0.33.3",
+ "ndarray 0.16.1",
+ "num-traits",
+ "rand 0.8.8",
+ "rand_distr",
+ "rustfft",
+ "special",
+]
 
 [[package]]
 name = "matrixmultiply"
@@ -766,22 +782,6 @@ checksum = "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c"
 dependencies = [
  "adler2",
  "simd-adler32",
-]
-
-[[package]]
-name = "mlab"
-version = "0.1.0"
-source = "git+https://github.com/keejkrej/mlab-rs?rev=0366f8af5bba4baa4f6345e7d1dcc750179f6e29#0366f8af5bba4baa4f6345e7d1dcc750179f6e29"
-dependencies = [
- "image",
- "imageproc",
- "nalgebra 0.33.3",
- "ndarray 0.16.1",
- "num-traits",
- "rand 0.8.8",
- "rand_distr",
- "rustfft",
- "special",
 ]
 
 [[package]]

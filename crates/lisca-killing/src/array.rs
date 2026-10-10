@@ -54,5 +54,5 @@ fn quantile(values: &[f64], q: f64) -> f64 {
         return finite[0];
     }
     // `np::percentile` is numpy's linear quantile. `q` here is a fraction.
-    mlab::np::percentile(&mlab::np::array(finite), q * 100.0)
+    marray::np::percentile(&marray::np::array(finite), q * 100.0)
 }
