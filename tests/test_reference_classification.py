@@ -8,14 +8,14 @@ import numpy as np
 import pytest
 import tifffile
 
-from apoptosis.embedding.experiment import (
+from killing.embedding.experiment import (
     display_plane,
     embed_sample,
     import_frame_manifest,
     review_sequences,
     sample_rois,
 )
-from apoptosis.embedding.reference_classification import (
+from killing.embedding.reference_classification import (
     compare_classifiers,
     evaluate_manifest,
     unit_vectors,

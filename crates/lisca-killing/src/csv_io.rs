@@ -44,6 +44,10 @@ pub fn column_index(headers: &[String], name: &str) -> Option<usize> {
     headers.iter().position(|header| header == name)
 }
 
+pub fn parse_f64(raw: &str) -> Option<f64> {
+    raw.trim().parse::<f64>().ok()
+}
+
 pub fn format_float(value: f64) -> String {
     if value.is_finite() {
         value.to_string()

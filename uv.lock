@@ -203,7 +203,7 @@ wheels = [
 ]
 
 [[package]]
-name = "apoptosis"
+name = "killing"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

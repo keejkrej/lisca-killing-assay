@@ -30,7 +30,7 @@ and other changes that can masquerade as death. Disappearance and ring loss are
 not automatically mapped to a biological death label.
 
 The LiSCA host loads this encoder through ADR-0003. This comparison does not
-replace `apoptosis predict`.
+replace `killing predict`.
 
 ## Looks like a bug when
 

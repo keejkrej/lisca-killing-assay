@@ -1,4 +1,4 @@
-# apoptosis
+# killing
 
 CLI for two killing kinds on LiSCA ROI time-lapses (one ROI per micropattern Pattern).
 
@@ -7,16 +7,17 @@ CLI for two killing kinds on LiSCA ROI time-lapses (one ROI per micropattern Pat
 | Death reporter | `death-reporter` | A fluorescent reporter of a death event. The reporter is the signal, as in a transfection Trace. |
 | Label-free | `label-free` | Brightfield or phase contrast. Manual labels train a ResNet; there is no death reporter. |
 
-The commands below are the label-free path. They compare morphology-based death timing with TOTO-3, which is one death reporter. Ids live in `apoptosis.core.assay`.
+The commands below are the label-free path. They compare morphology-based death timing with TOTO-3, which is one death reporter. Ids live in `killing.core.assay`.
 
 Death-reporter fluorescence and fluorescent engagement are the Studio measurements. Rust crate `lisca-killing` is what LiSCA imports. The same definitions are available as:
 
 ```bash
-uv run apoptosis fluorescence /path/to/workspace
-uv run apoptosis engagement /path/to/workspace
+uv run killing fluorescence /path/to/workspace
+uv run killing engagement /path/to/workspace
+uv run killing clean /path/to/workspace
 ```
 
-`fluorescence` writes `analysis/Pos{n}/ch{m}.csv` (`roi,t,area,background,sum,corrected`). `engagement` writes `analysis/Pos{n}/engagement.csv`. Excel packs and the per-sample figures are written by the Rust crate when Studio runs the analysis.
+`fluorescence` writes `analysis/Pos{n}/ch{m}.csv` (`roi,t,area,background,sum,corrected`). `engagement` writes `analysis/Pos{n}/engagement.csv`. `clean` reads `results/predictions.csv` and writes `predictions_cleaned.csv`, `death_times.csv`, and `kill_curve.csv`. A crop stays alive while `p_dead` is below 0.5; once it is dead, later alive labels are cleared. Excel packs and the per-sample figures are written by the Rust crate when Studio runs the analysis. The ResNet `predict` step loads `model.onnx` in the Rust crate (`onnx` feature).
 
 ## Install
 
@@ -24,11 +25,11 @@ uv run apoptosis engagement /path/to/workspace
 uv sync
 ```
 
-The `apoptosis` entry point is available in the project virtual environment.
+The `killing` entry point is available in the project virtual environment.
 
 ```bash
-uv run apoptosis --help
-uv run apoptosis <command> --help
+uv run killing --help
+uv run killing <command> --help
 ```
 
 ## Input layout
@@ -72,19 +73,19 @@ label -> dataset-build -> train -> eval -> predict
 
 ```bash
 # Annotate ROIs in the browser (writes labels.json)
-uv run apoptosis label --data-dir /path/to/data
+uv run killing label --data-dir /path/to/data
 
 # Build per-frame train/val manifest from labels
-uv run apoptosis dataset-build --data-dir /path/to/data --labels-path labels.json
+uv run killing dataset-build --data-dir /path/to/data --labels-path labels.json
 
 # Train ResNet viability classifier
-uv run apoptosis train --manifest datasets/viability/manifest.json
+uv run killing train --manifest datasets/viability/manifest.json
 
 # Report accuracy/F1 on train and val splits
-uv run apoptosis eval --checkpoint runs/viability/lightning_logs/.../best-*.ckpt
+uv run killing eval --checkpoint runs/viability/lightning_logs/.../best-*.ckpt
 
 # Infer all cells and write validation figure
-uv run apoptosis predict --data-dir /path/to/data
+uv run killing predict --data-dir /path/to/data
 ```
 
 **Outputs**
@@ -99,7 +100,7 @@ uv run apoptosis predict --data-dir /path/to/data
 
 ## Labeling web app
 
-`apoptosis label` starts a FastAPI server (`apoptosis.api`) backed by `routes/labeling.py`. The browser UI (`static/label.html`) lists ROIs, shows brightfield/Toto-3 frames, and saves death-frame annotations via REST (`/api/rois`, `/api/labels`). Open the URL printed by the command (default `http://127.0.0.1:8000`).
+`killing label` starts a FastAPI server (`killing.api`) backed by `routes/labeling.py`. The browser UI (`static/label.html`) lists ROIs, shows brightfield/Toto-3 frames, and saves death-frame annotations via REST (`/api/rois`, `/api/labels`). Open the URL printed by the command (default `http://127.0.0.1:8000`).
 
 ## Command reference
 
@@ -110,6 +111,7 @@ uv run apoptosis predict --data-dir /path/to/data
 | `train` | Train a ResNet viability classifier with PyTorch Lightning |
 | `eval` | Evaluate a trained model on train and val splits |
 | `predict` | Run viability inference on all cells; plot Toto-3 vs morphology timing |
+| `clean` | Monotonicity-clean classifier labels; write death times and the kill curve |
 | `hello` | Greet someone (smoke test) |
 | `version` | Show the installed version |
 

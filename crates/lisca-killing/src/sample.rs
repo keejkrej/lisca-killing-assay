@@ -58,6 +58,15 @@ impl FromIterator<SampleAnalysis> for SampleMapping {
     }
 }
 
+impl<'a> IntoIterator for &'a SampleMapping {
+    type Item = &'a SampleAnalysis;
+    type IntoIter = std::slice::Iter<'a, SampleAnalysis>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
 /// `results/<dirname>/` per Sample index. Names that sanitize to the same
 /// dirname are prefixed with their 0-based assay index.
 pub fn sample_pack_dirnames(mapping: &SampleMapping) -> BTreeMap<usize, String> {

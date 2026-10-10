@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import tifffile
 
-from apoptosis.inference.viability import movie_images, movie_info, step_fit
+from killing.inference.viability import movie_images, movie_info, step_fit
 
 
 def test_tiff_channel_and_baseline_contrast():

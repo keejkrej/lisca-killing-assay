@@ -1,6 +1,6 @@
 import numpy as np
 
-from apoptosis.core.engagement import (
+from killing.core.engagement import (
     ENGAGER_DIAMETER_PX,
     EngagementCounts,
     FluorescenceHistogram,
@@ -12,7 +12,7 @@ from apoptosis.core.engagement import (
     tcell_mask,
     tumor_mask,
 )
-from apoptosis.core.fluorescence import measure_frame
+from killing.core.fluorescence import measure_frame
 
 
 def _paint_disk(

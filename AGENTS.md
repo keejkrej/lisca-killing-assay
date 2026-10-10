@@ -9,7 +9,7 @@ and Fig. 6 regeneration. Train-at-scale: `lsr-ex-dgx1`.
 
 ## Purpose
 
-Python CLI `apoptosis` and Rust crate `lisca-killing`.
+Python CLI `killing` and Rust crate `lisca-killing`.
 
 Label-free path: label death frames → train ResNet viability → compare
 morphology death time with TOTO-3. Supplies LISCA review Fig. 6 D–E via
@@ -18,16 +18,18 @@ The host process stays in `keejkrej/lisca` (`docs/adr/0003-assay-registers-its-m
 The offline embedding comparison stays here. Dual-marker LNP event times
 (Fig. 6 A–C) are not this repo.
 
-Studio death-reporter fluorescence and fluorescent engagement counts live in
-this repo (`lisca-killing`, plus `apoptosis fluorescence` / `apoptosis engagement`).
+Studio death-reporter fluorescence, fluorescent engagement, and the killing
+classifier (predict, clean, kill curve) live in this repo (`lisca-killing`, plus
+`killing fluorescence`, `killing engagement`, and `killing clean`).
 `keejkrej/lisca` imports the crate at build time and keeps scheduling, progress,
-and the shared figures. Studio UI stays in `keejkrej/lisca`.
+and the figures. `predict` loads `model.onnx` behind the crate's `onnx` feature.
+Studio UI stays in `keejkrej/lisca`.
 
 ## Commands
 
 ```sh
 uv sync
-uv run apoptosis --help
+uv run killing --help
 ```
 
 Typical pipeline: `label` → `dataset-build` → `train` → `eval` → `predict`.

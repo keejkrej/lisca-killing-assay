@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from apoptosis.embedding.experiment import (
+from killing.embedding.experiment import (
     compare_sample,
     embed_sample,
     import_frame_manifest,

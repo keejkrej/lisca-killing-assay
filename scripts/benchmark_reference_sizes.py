@@ -7,8 +7,8 @@ from typing import Any
 
 import numpy as np
 
-from apoptosis.embedding.experiment import compare_sample, write_json
-from apoptosis.embedding.reference_classification import evaluate_manifest
+from killing.embedding.experiment import compare_sample, write_json
+from killing.embedding.reference_classification import evaluate_manifest
 
 
 def main() -> None:

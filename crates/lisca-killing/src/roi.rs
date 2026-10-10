@@ -35,6 +35,11 @@ impl Frame2D {
     pub fn as_slice(&self) -> &[f64] {
         &self.data
     }
+
+    #[cfg(feature = "onnx")]
+    pub fn into_vec(self) -> Vec<f64> {
+        self.data
+    }
 }
 
 #[derive(Debug, Clone)]
