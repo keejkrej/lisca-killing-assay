@@ -553,8 +553,8 @@ fn otsu_threshold(pixels: &[f64]) -> Option<f64> {
         .iter()
         .map(|value| ((*value - min) * scale).round().clamp(0.0, 255.0) as u8)
         .collect();
-    let image = mlab_rs::np::Array2::from_shape_vec((1, gray.len()), gray).ok()?;
-    let level = mlab_rs::skimage::filters::threshold_otsu(&image);
+    let image = mlab::np::Array2::from_shape_vec((1, gray.len()), gray).ok()?;
+    let level = mlab::skimage::filters::threshold_otsu(&image);
     Some(min + (level / 255.0) * (max - min))
 }
 
