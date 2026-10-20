@@ -11,10 +11,11 @@ and Fig. 6 regeneration. Train-at-scale: `lsr-ex-dgx1`.
 
 Rust crate `lisca-killing`, imported by Lisca. The Python package `killing` is the definition library and the local training CLI.
 
-Label-free path: label death frames → train ResNet viability → compare
-morphology death time with TOTO-3. Supplies LISCA review Fig. 6 D–E via
-`scripts/plot_fig6.py`. EmbeddingGemma and the viable/dead SVM register with the LiSCA inference host.
-The host process stays in `keejkrej/lisca` (`docs/adr/0003-assay-registers-its-model.md`).
+Label-free path: label death frames on a small set → fit a linear SVM head on
+frozen EmbeddingGemma 2 embeddings → score morphology death time against TOTO-3.
+Supplies LISCA review Fig. 6 D–E via `scripts/plot_fig6.py`. EmbeddingGemma and
+the viable/dead head register with the LiSCA inference host. The host process
+stays in `keejkrej/lisca` (`docs/adr/0003-assay-registers-its-model.md`).
 The offline embedding comparison stays here. Dual-marker LNP event times
 (Fig. 6 A–C) are not this repo.
 
@@ -23,13 +24,14 @@ classifier (predict, monotonicity clean, kill curve) live here as library code
 (`lisca-killing`, `killing.core`, `killing.services`). `keejkrej/lisca` imports
 the crate at build time. Studio UI, scheduling, figures, and `lisca-analyze`
 stay in `keejkrej/lisca`. `lisca_killing::run_predict_to` loads `model.onnx`
-behind the crate's `onnx` feature. Python `predict` is the Lightning checkpoint
-tool, not that function.
+behind the crate's `onnx` feature. Python `predict` scores ROI stacks with
+EmbeddingGemma and the trained linear head; that is not `run_predict_to`.
 
 ## Commands
 
 ```sh
 uv sync
+uv sync --extra encoder
 uv run killing --help
 ```
 

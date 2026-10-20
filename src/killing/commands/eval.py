@@ -5,30 +5,15 @@ import typer
 from killing.app import app
 from killing.core.session import PROJECT_ROOT
 from killing.services.dataset_build import default_dataset_dir
-from killing.services.evaluate import evaluate_checkpoint
-
-
-def _default_checkpoint() -> Path:
-    root = PROJECT_ROOT / "runs" / "viability" / "lightning_logs"
-    candidates = sorted(
-        root.rglob("*.ckpt"),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
-    for path in candidates:
-        if "best-" in path.name:
-            return path
-    if candidates:
-        return candidates[0]
-    msg = f"No checkpoints found under {root}"
-    raise FileNotFoundError(msg)
+from killing.services.evaluate import evaluate_head
+from killing.services.head_train import default_head_path
 
 
 @app.command()
 def eval(
-    checkpoint: Path = typer.Option(
-        _default_checkpoint(),
-        "--checkpoint",
+    head: Path = typer.Option(
+        default_head_path(PROJECT_ROOT),
+        "--head",
         exists=True,
         dir_okay=False,
         resolve_path=True,
@@ -40,18 +25,28 @@ def eval(
         dir_okay=False,
         resolve_path=True,
     ),
-    batch_size: int = typer.Option(64, min=1),
-    num_workers: int = typer.Option(4, min=0),
-    accelerator: str = typer.Option("auto", help="auto, gpu, or cpu"),
+    embeddings_path: Path | None = typer.Option(
+        None,
+        "--embeddings",
+        dir_okay=False,
+        resolve_path=True,
+        help="Optional cached embeddings (.npz). Default: <head-dir>/embeddings.npz.",
+    ),
+    batch_size: int = typer.Option(8, min=1),
+    device: str = typer.Option("cuda", help="cuda or cpu for EmbeddingGemma"),
 ) -> None:
-    """Evaluate a trained viability model on train and val splits."""
-    typer.echo(f"Checkpoint: {checkpoint}")
-    results = evaluate_checkpoint(
-        checkpoint_path=checkpoint,
+    """Evaluate a trained linear head on train and val splits."""
+    cached = embeddings_path
+    if cached is None:
+        sibling = head.parent / "embeddings.npz"
+        cached = sibling if sibling.is_file() else None
+    typer.echo(f"Head: {head}")
+    results = evaluate_head(
+        head_path=head,
         manifest_path=manifest_path,
+        embeddings_path=cached,
         batch_size=batch_size,
-        num_workers=num_workers,
-        accelerator=accelerator,
+        device=device,
     )
     for metrics in results:
         typer.echo("")

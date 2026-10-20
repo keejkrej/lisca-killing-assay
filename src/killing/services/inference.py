@@ -6,8 +6,6 @@ from pathlib import Path
 
 import numpy as np
 import tifffile
-import torch
-from torch.utils.data import DataLoader, TensorDataset
 
 from killing.core.roi import discover_rois, roi_frame_count, roi_path
 from killing.core.toto import (
@@ -17,8 +15,11 @@ from killing.core.toto import (
     toto_alive_signal,
     toto_trace,
 )
-from killing.ml.preprocess import stack_brightfield_tensor
-from killing.ml.viability_module import ViabilityModule
+from killing.ml.encoder import ImageEncoder, load_encoder, require_matching_encoder
+from killing.ml.head import LinearHead, dead_probability, load_head
+from killing.ml.preprocess import stack_brightfield_image
+from killing.services.embed import embed_images
+from killing.services.head_train import default_head_path
 
 POSITION_META = {
     "Pos0": {"label": "100 nM STS", "color": "#1f77b4"},
@@ -39,62 +40,30 @@ class CellInference:
     death_probability: list[float]
 
 
-def _default_checkpoint(project_root: Path) -> Path:
-    root = project_root / "runs" / "viability" / "lightning_logs"
-    candidates = sorted(
-        root.rglob("*.ckpt"),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
-    for path in candidates:
-        if "best-" in path.name or "best-epoch" in path.name:
-            return path
-    if candidates:
-        return candidates[0]
-    msg = f"No checkpoints found under {root}"
-    raise FileNotFoundError(msg)
-
-
 def _predict_death_probability(
-    model: ViabilityModule,
+    encoder: ImageEncoder,
+    head: LinearHead,
     stack: np.ndarray,
     frame_count: int,
-    device: torch.device,
     batch_size: int,
 ) -> np.ndarray:
-    tensors = [
-        stack_brightfield_tensor(stack, frame) for frame in range(frame_count)
-    ]
-    loader = DataLoader(
-        TensorDataset(torch.stack(tensors)),
-        batch_size=batch_size,
-        shuffle=False,
-    )
-    probs: list[np.ndarray] = []
-    model.eval()
-    with torch.inference_mode():
-        for (batch,) in loader:
-            logits = model(batch.to(device))
-            dead_prob = torch.softmax(logits, dim=1)[:, 0].cpu().numpy()
-            probs.append(dead_prob)
-    return np.concatenate(probs).astype(np.float32)
+    images = [stack_brightfield_image(stack, frame) for frame in range(frame_count)]
+    vectors = embed_images(encoder, images, batch_size=batch_size)
+    return dead_probability(head, vectors)
 
 
 def infer_all_cells(
     data_dir: Path,
-    checkpoint_path: Path,
-    batch_size: int = 64,
-    accelerator: str = "auto",
+    head_path: Path,
+    *,
+    encoder: ImageEncoder | None = None,
+    batch_size: int = 8,
+    device: str = "cuda",
 ) -> list[CellInference]:
-    if accelerator == "auto":
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    elif accelerator == "gpu":
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
-
-    model = ViabilityModule.load_from_checkpoint(str(checkpoint_path))
-    model.to(device)
+    head = load_head(head_path)
+    if encoder is None:
+        encoder = load_encoder(device=device)
+    require_matching_encoder(head, encoder)
 
     all_rois = discover_rois(data_dir)
     medians = position_median_traces(data_dir, all_rois)
@@ -111,10 +80,10 @@ def infer_all_cells(
         pos_median = medians.get(roi.position)
         contrast = (trace - pos_median) if pos_median is not None else trace
         death_prob = _predict_death_probability(
-            model=model,
+            encoder=encoder,
+            head=head,
             stack=stack,
             frame_count=frame_count,
-            device=device,
             batch_size=batch_size,
         )
         results.append(
@@ -145,3 +114,11 @@ def save_inference(results: list[CellInference], output_path: Path) -> None:
 def load_inference(path: Path) -> list[CellInference]:
     payload = json.loads(path.read_text())
     return [CellInference(**item) for item in payload]
+
+
+def resolve_head_path(project_root: Path, head: Path | None = None) -> Path:
+    path = head or default_head_path(project_root)
+    if not path.is_file():
+        msg = f"No trained head at {path}"
+        raise FileNotFoundError(msg)
+    return path

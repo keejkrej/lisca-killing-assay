@@ -4,11 +4,12 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-import torch
-from torch.utils.data import DataLoader
+import numpy as np
 
-from killing.ml.frame_dataset import ViabilityFrameDataset, load_manifest_samples
-from killing.ml.viability_module import ViabilityModule
+from killing.ml.encoder import ImageEncoder, load_encoder, require_matching_encoder
+from killing.ml.frame_dataset import ManifestSample, load_manifest_samples
+from killing.ml.head import load_head, predict_classes
+from killing.services.embed import embed_samples, load_aligned_embeddings
 
 
 @dataclass(frozen=True)
@@ -44,83 +45,73 @@ def _binary_metrics(
     return accuracy, f1, precision, recall, [[tn, fp], [fn, tp]]
 
 
-def _evaluate_split(
-    model: ViabilityModule,
-    dataset: ViabilityFrameDataset,
-    split: str,
-    device: torch.device,
+def _as_binary(name: str) -> int:
+    if name == "viable":
+        return 1
+    if name == "dead":
+        return 0
+    msg = f"Unsupported class {name!r}"
+    raise ValueError(msg)
+
+
+def _embeddings_for_samples(
+    samples: list[ManifestSample],
+    data_dir: Path,
+    encoder: ImageEncoder | None,
+    embeddings_path: Path | None,
     batch_size: int,
-    num_workers: int,
-) -> SplitMetrics:
-    loader = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers,
-        pin_memory=device.type == "cuda",
-    )
-    preds: list[int] = []
-    labels: list[int] = []
-
-    model.eval()
-    with torch.inference_mode():
-        for images, batch_labels in loader:
-            images = images.to(device)
-            batch_preds = torch.argmax(model(images), dim=1).cpu().tolist()
-            preds.extend(int(value) for value in batch_preds)
-            labels.extend(int(value) for value in batch_labels.tolist())
-
-    accuracy, f1, precision, recall, confusion = _binary_metrics(preds, labels)
-    true_dead = sum(1 for label in labels if label == 0)
-    true_viable = len(labels) - true_dead
-    pred_dead = sum(1 for pred in preds if pred == 0)
-    pred_viable = len(preds) - pred_dead
-
-    return SplitMetrics(
-        split=split,
-        samples=len(labels),
-        accuracy=accuracy,
-        f1=f1,
-        precision=precision,
-        recall=recall,
-        true_viable=true_viable,
-        true_dead=true_dead,
-        pred_viable=pred_viable,
-        pred_dead=pred_dead,
-        confusion=confusion,
-    )
+    device: str,
+) -> np.ndarray:
+    if embeddings_path is not None:
+        return load_aligned_embeddings(embeddings_path, samples)
+    if encoder is None:
+        encoder = load_encoder(device=device)
+    return embed_samples(encoder, data_dir, samples, batch_size=batch_size)
 
 
-def evaluate_checkpoint(
-    checkpoint_path: Path,
+def evaluate_head(
+    head_path: Path,
     manifest_path: Path,
-    batch_size: int = 64,
-    num_workers: int = 4,
-    accelerator: str = "auto",
+    *,
+    encoder: ImageEncoder | None = None,
+    embeddings_path: Path | None = None,
+    batch_size: int = 8,
+    device: str = "cuda",
 ) -> list[SplitMetrics]:
-    if accelerator == "auto":
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    elif accelerator == "gpu":
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
-
-    model = ViabilityModule.load_from_checkpoint(str(checkpoint_path))
-    model.to(device)
-
+    head = load_head(head_path)
+    if encoder is not None:
+        require_matching_encoder(head, encoder)
     data_dir = Path(json.loads(manifest_path.read_text())["data_dir"])
     results: list[SplitMetrics] = []
     for split in ("train", "val"):
         samples = load_manifest_samples(manifest_path, split)
-        dataset = ViabilityFrameDataset(data_dir, samples)
+        vectors = _embeddings_for_samples(
+            samples,
+            data_dir,
+            encoder,
+            embeddings_path,
+            batch_size,
+            device,
+        )
+        preds = [_as_binary(name) for name in predict_classes(head, vectors)]
+        labels = [int(sample.label) for sample in samples]
+        accuracy, f1, precision, recall, confusion = _binary_metrics(preds, labels)
+        true_dead = sum(1 for label in labels if label == 0)
+        true_viable = len(labels) - true_dead
+        pred_dead = sum(1 for pred in preds if pred == 0)
         results.append(
-            _evaluate_split(
-                model=model,
-                dataset=dataset,
+            SplitMetrics(
                 split=split,
-                device=device,
-                batch_size=batch_size,
-                num_workers=num_workers,
+                samples=len(labels),
+                accuracy=accuracy,
+                f1=f1,
+                precision=precision,
+                recall=recall,
+                true_viable=true_viable,
+                true_dead=true_dead,
+                pred_viable=len(preds) - pred_dead,
+                pred_dead=pred_dead,
+                confusion=confusion,
             )
         )
     return results

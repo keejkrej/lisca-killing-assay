@@ -5,7 +5,7 @@ Library Lisca imports (`lisca-killing`) and the local label-free training tool. 
 | Kind | Id | Signal |
 | --- | --- | --- |
 | Death reporter | `death-reporter` | A fluorescent reporter of a death event. The reporter is the signal, as in a transfection Trace. |
-| Label-free | `label-free` | Brightfield or phase contrast. Manual labels train a ResNet; there is no death reporter. |
+| Label-free | `label-free` | Brightfield or phase contrast. A frozen EmbeddingGemma 2 encoder plus a linear SVM head; there is no death reporter. |
 
 The commands below are the label-free path. They compare morphology-based death timing with TOTO-3, which is one death reporter. Ids live in `killing.core.assay`.
 
@@ -13,13 +13,16 @@ Death-reporter fluorescence and fluorescent engagement are the Studio measuremen
 
 `lisca-analyze killing-death-reporter` and `lisca-analyze killing-engagement` in [keejkrej/lisca](https://github.com/keejkrej/lisca) run those measurements. Each command requires an `assay.json` type of the same name. There is no assay id `killing`. They arrive with Lisca PR 159 and are not on `lisca` `main` until that PR merges.
 
-A crop stays alive while `p_dead` is below 0.5; once it is dead, later alive labels are cleared. Python `predict` loads a Lightning checkpoint and writes `runs/viability/inference.json`. That is not `lisca_killing::run_predict_to`, which loads `model.onnx` behind the crate's `onnx` feature.
+A crop stays alive while `p_dead` is below 0.5; once it is dead, later alive labels are cleared. Python `predict` loads the trained linear head, embeds brightfield frames with frozen EmbeddingGemma 2, and writes `runs/viability/inference.json`. That is not `lisca_killing::run_predict_to`, which loads `model.onnx` behind the crate's `onnx` feature.
 
 ## Install
 
 ```bash
 uv sync
+uv sync --extra encoder
 ```
+
+The encoder extra is required to embed frames with EmbeddingGemma. Fitting or evaluating a head on cached embeddings only needs `uv sync`.
 
 The `killing` entry point is available in the project virtual environment.
 
@@ -74,15 +77,17 @@ uv run killing label --data-dir /path/to/data
 # Build per-frame train/val manifest from labels
 uv run killing dataset-build --data-dir /path/to/data --labels-path labels.json
 
-# Train ResNet viability classifier
+# Fit a linear SVM head on frozen EmbeddingGemma embeddings
 uv run killing train --manifest datasets/viability/manifest.json
 
 # Report accuracy/F1 on train and val splits
-uv run killing eval --checkpoint runs/viability/lightning_logs/.../best-*.ckpt
+uv run killing eval --head runs/viability/head.json
 
 # Infer all cells and write validation figure
 uv run killing predict --data-dir /path/to/data
 ```
+
+`train` embeds labelled frames with EmbeddingGemma 2 (`google/embeddinggemma-2`, pinned revision in `killing.inference.embeddinggemma`) and fits a class-balanced linear SVM. The encoder stays frozen. `--embeddings` reuses a cached `.npz` so the head can be refit without loading the encoder.
 
 **Outputs**
 
@@ -90,7 +95,7 @@ uv run killing predict --data-dir /path/to/data
 |---|---|
 | `label` | `labels.json` (or `--labels-path`) |
 | `dataset-build` | `datasets/viability/manifest.json` |
-| `train` | `runs/viability/lightning_logs/version_*/checkpoints/best-*.ckpt` |
+| `train` | `runs/viability/head.json`, `runs/viability/embeddings.npz` |
 | `eval` | Metrics printed to stdout |
 | `predict` | `runs/viability/inference.json`, `runs/viability/validation_plot.png` |
 
@@ -104,23 +109,22 @@ uv run killing predict --data-dir /path/to/data
 |---|---|
 | `label` | Launch the ROI viability labeling webapp |
 | `dataset-build` | Build a per-frame viability dataset manifest from manual labels |
-| `train` | Train a ResNet viability classifier with PyTorch Lightning |
-| `eval` | Evaluate a trained model on train and val splits |
-| `predict` | Lightning checkpoint inference; write `runs/viability/inference.json`. Not `lisca_killing::run_predict_to` |
+| `train` | Fit a linear SVM head on frozen EmbeddingGemma embeddings |
+| `eval` | Evaluate a trained head on train and val splits |
+| `predict` | Embed ROI stacks and write `runs/viability/inference.json`. Not `lisca_killing::run_predict_to` |
 | `hello` | Greet someone (smoke test) |
 | `version` | Show the installed version |
 
 ## Frozen-encoder viability
 
-Label-free viability can also be scored with a frozen EmbeddingGemma encoder,
-cosine nearest neighbors, and a small linear SVM. No encoder weights are trained.
-The offline comparison is `scripts/compare_roi_embeddings.py`
-([results](docs/roi-embedding-comparison.md)). EmbeddingGemma and the
-viable/dead classifier register with the LiSCA inference host
+Label-free viability is scored with a frozen EmbeddingGemma encoder and a small
+linear SVM head. No encoder weights are trained. The same encoder and viable/dead
+task register with the LiSCA inference host
 (`python -m lisca.inference.server` in
 [keejkrej/lisca](https://github.com/keejkrej/lisca)). Studio dials that host.
-Optional encoder install: `requirements-inference.txt`. The offline comparison
-also uses `requirements-embedding.txt`.
+Optional encoder install: `uv sync --extra encoder` or `requirements-inference.txt`.
+The offline comparison (`scripts/compare_roi_embeddings.py`,
+[results](docs/roi-embedding-comparison.md)) also uses `requirements-embedding.txt`.
 
 ## Paper figures
 
