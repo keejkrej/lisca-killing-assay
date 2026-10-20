@@ -17,7 +17,8 @@ process. This package still chooses the encoder revision and the viable/dead
 task, including the offline SVM comparison. A model trained for this assay
 would replace EmbeddingGemma here, not in the host.
 
-The ResNet `predict` command is not redirected to this encoder.
+Local `killing predict` uses this encoder and a linear head trained in this
+package (ADR-0004).
 
 ## Looks like a bug when
 

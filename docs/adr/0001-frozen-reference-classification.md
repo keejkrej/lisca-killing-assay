@@ -15,8 +15,8 @@ Embedding generation is the GPU operation; reference edits reuse those vectors.
 The small SVM is fitted on labeled embeddings, while no encoder weights change.
 The comparison lives in this assay because the labels are viable and dead on
 brightfield ROIs, scored against this package's viability manifest. It does not
-add weights to the product `models/` tree and does not replace the ResNet
-training commands.
+add weights to the product `models/` tree. The local train/eval/predict CLI
+fits the same kind of linear head (ADR-0004).
 
 Randomly splitting time-lapse frames leaks the same ROI into both reference and
 evaluation sets. Split whole ROIs before labeling, and keep ambiguous annotations
@@ -29,8 +29,8 @@ identified by the user for this cell line. Sequence contact sheets expose drift
 and other changes that can masquerade as death. Disappearance and ring loss are
 not automatically mapped to a biological death label.
 
-The LiSCA host loads this encoder through ADR-0003. This comparison does not
-replace `killing predict`.
+The LiSCA host loads this encoder through ADR-0003. `killing predict` uses the
+same frozen encoder and a saved linear head.
 
 ## Looks like a bug when
 

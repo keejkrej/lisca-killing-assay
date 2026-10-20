@@ -15,3 +15,4 @@ Why a shipped choice looks the way it does. Agents write these during the change
 | [0001](0001-frozen-reference-classification.md)        | accepted | Compare label-free viability with a frozen encoder           |
 | [0002](0002-remote-embedding-service.md)               | superseded | Serve frozen viability inference from this package         |
 | [0003](0003-assay-registers-its-model.md)              | accepted   | Register EmbeddingGemma and the viability classifier       |
+| [0004](0004-embeddinggemma-linear-head.md)             | accepted   | Label-free viability uses EmbeddingGemma and a linear head |

@@ -1,4 +1,4 @@
-//! ONNX ResNet18 predict. Compiled only with the `onnx` feature.
+//! ONNX kill-model predict. Compiled only with the `onnx` feature.
 
 use std::collections::BTreeMap;
 use std::fs;

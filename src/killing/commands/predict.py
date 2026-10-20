@@ -4,11 +4,8 @@ import typer
 
 from killing.app import app
 from killing.core.session import DEFAULT_DATA_DIR, PROJECT_ROOT
-from killing.services.inference import (
-    _default_checkpoint,
-    infer_all_cells,
-    save_inference,
-)
+from killing.services.head_train import default_head_path
+from killing.services.inference import infer_all_cells, save_inference
 from killing.services.plot_validation import plot_validation
 
 
@@ -22,9 +19,9 @@ def predict(
         dir_okay=True,
         resolve_path=True,
     ),
-    checkpoint: Path = typer.Option(
-        _default_checkpoint(PROJECT_ROOT),
-        "--checkpoint",
+    head: Path = typer.Option(
+        default_head_path(PROJECT_ROOT),
+        "--head",
         exists=True,
         dir_okay=False,
         resolve_path=True,
@@ -39,16 +36,16 @@ def predict(
         "--output-plot",
         resolve_path=True,
     ),
-    batch_size: int = typer.Option(64, min=1),
-    accelerator: str = typer.Option("auto", help="auto, gpu, or cpu"),
+    batch_size: int = typer.Option(8, min=1),
+    device: str = typer.Option("cuda", help="cuda or cpu for EmbeddingGemma"),
 ) -> None:
-    """Run viability inference on all cells and plot toto vs brightfield timing."""
-    typer.echo(f"Inferring {data_dir} with {checkpoint.name}")
+    """Score every ROI with EmbeddingGemma and the trained linear head."""
+    typer.echo(f"Inferring {data_dir} with {head.name}")
     results = infer_all_cells(
         data_dir=data_dir,
-        checkpoint_path=checkpoint,
+        head_path=head,
         batch_size=batch_size,
-        accelerator=accelerator,
+        device=device,
     )
     save_inference(results, output_json)
     plot_validation(results, output_plot)

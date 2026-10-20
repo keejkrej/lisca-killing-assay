@@ -27,8 +27,8 @@ clean single-cell example. A separately labeled retrospective step can summarize
 the movie, but does not establish accurate death timing. Ambiguous TIFF page axes
 require the ROI index; guessing would mix reporter channels with time.
 
-The ResNet `predict` command is not redirected here: its checkpoint contract and
-outputs differ.
+Local `killing predict` writes `runs/viability/inference.json` from the same
+encoder and a saved linear head; that file is not this HTTP service.
 
 ## Looks like a bug when
 

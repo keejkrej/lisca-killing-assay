@@ -7,7 +7,8 @@
 //!
 //! Folder names match lisca (`roi/Pos{n}/`, `analysis/Pos{n}/`, `results/<sample>/`).
 //! Crop stays in lisca. Studio schedules the steps and draws the figures.
-//! Predict loads `model.onnx` only with the `onnx` feature.
+//! Predict loads `model.onnx` only with the `onnx` feature. Label-free
+//! viability scoring uses the Python EmbeddingGemma encoder and a linear head.
 //!
 //! Callers pass a workspace path and a [`SampleMapping`]. ndarray types are
 //! not part of this API.

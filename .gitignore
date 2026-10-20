@@ -10,4 +10,3 @@ build/
 /target/
 datasets/
 runs/
-lightning_logs/

@@ -12,7 +12,7 @@ This is the primary comparison. The existing
 `/home/jack/data/lisca_review/fig6/20260327` and contains manual death-frame-derived
 labels for 50 ROI sequences. Its original split is retained: 40 reference ROIs and
 10 validation ROIs. Frames from a given ROI never cross that boundary. This uses
-the existing annotations, not ResNet predictions or Codex visual labels.
+the existing annotations, not Codex visual labels.
 
 Every tenth stored frame was embedded: 1,250 brightfield images, including 1,000
 references (717 viable, 283 dead) and 250 validation images (201 viable, 49 dead).

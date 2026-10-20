@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import numpy as np
-import torch
-import torch.nn.functional as F
+from PIL import Image
 
 from killing.core.roi import CHANNEL_BRIGHTFIELD, page_index
-
-IMAGE_SIZE = 128
 
 
 def normalize_frame(frame: np.ndarray) -> np.ndarray:
@@ -17,20 +14,11 @@ def normalize_frame(frame: np.ndarray) -> np.ndarray:
     return scaled.astype(np.float32)
 
 
-def frame_to_tensor(frame: np.ndarray) -> torch.Tensor:
-    normalized = normalize_frame(frame.copy())
-    rgb = np.repeat(normalized[np.newaxis, ...], 3, axis=0)
-    tensor = torch.tensor(rgb, dtype=torch.float32)
-    if tensor.shape[-2:] != (IMAGE_SIZE, IMAGE_SIZE):
-        tensor = F.interpolate(
-            tensor.unsqueeze(0),
-            size=(IMAGE_SIZE, IMAGE_SIZE),
-            mode="bilinear",
-            align_corners=False,
-        ).squeeze(0)
-    return tensor
+def frame_to_image(frame: np.ndarray) -> Image.Image:
+    """Percentile-scaled grayscale replicated to RGB. The encoder resizes."""
+    scaled = normalize_frame(frame.copy())
+    return Image.fromarray((scaled * 255).astype(np.uint8)).convert("RGB")
 
 
-def stack_brightfield_tensor(stack: np.ndarray, frame: int) -> torch.Tensor:
-    image = stack[page_index(frame, CHANNEL_BRIGHTFIELD)].copy()
-    return frame_to_tensor(image)
+def stack_brightfield_image(stack: np.ndarray, frame: int) -> Image.Image:
+    return frame_to_image(stack[page_index(frame, CHANNEL_BRIGHTFIELD)].copy())

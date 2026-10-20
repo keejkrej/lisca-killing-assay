@@ -1,4 +1,4 @@
-//! Killing classifier: alive/dead label and the ResNet predict loop.
+//! Killing classifier: alive/dead label and the ONNX predict loop.
 //!
 //! `label` true means a cell is still present. `p_dead` is the model's
 //! probability of the absent class. A crop is alive while `p_dead` is below
@@ -19,7 +19,7 @@ pub struct PredictOptions {
 
 impl Default for PredictOptions {
     fn default() -> Self {
-        // Batch 256 makes the ResNet18 activation tensors hundreds of megabytes.
+        // Batch 256 makes the activation tensors hundreds of megabytes.
         // 32 matches transfection segment and stays small on an 8 GB laptop.
         Self { batch_size: 32 }
     }
