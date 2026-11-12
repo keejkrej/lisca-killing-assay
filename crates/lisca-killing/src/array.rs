@@ -32,7 +32,7 @@ pub fn full_frame_roi_stats(frame: &[f64]) -> MaskedRoiStats {
     }
 }
 
-fn quantile(values: &[f64], q: f64) -> f64 {
+pub(crate) fn quantile(values: &[f64], q: f64) -> f64 {
     if values.is_empty() {
         return 0.0;
     }
@@ -55,4 +55,8 @@ fn quantile(values: &[f64], q: f64) -> f64 {
     }
     // `np::percentile` is numpy's linear quantile. `q` here is a fraction.
     marray::np::percentile(&marray::np::array(finite), q * 100.0)
+}
+
+pub(crate) fn percentile(values: &[f64], p: f64) -> f64 {
+    quantile(values, p / 100.0)
 }
